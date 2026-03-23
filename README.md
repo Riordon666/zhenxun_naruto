@@ -6,7 +6,7 @@
 ![Platform](https://img.shields.io/badge/Platform-Zhenxun%20Bot-orange)
 ![License](https://img.shields.io/badge/License-MIT-green)
 
-一个用于 **火影忍者手游** 场景的 [真寻 Bot](https://github.com/zhenxun-org/zhenxun_bot) 插件。
+一个用于QQ群 **火影忍者手游** 攻略查询的 [真寻 Bot](https://github.com/zhenxun-org/zhenxun_bot) 插件。
 
 </div>
 
