@@ -15,7 +15,6 @@
 - 获取指定抖音博主最新攻略
 - 支持视频与图文作品发送
 - 自动缓存资源
-- 支持作者简写
 - 提供木叶快报快捷入口
 - 提供饰品模拟器快捷入口
 
@@ -321,6 +320,14 @@ AUTHOR_ALIASES = {
 
 ---
 
-## License
+## 关于
+如果你喜欢这个插件项目，记得点个star，所有攻略来自于网络，若有侵权，请联系我删除
 
-MIT
+如果你有任何问题、想法或改进建议，欢迎提交 [Issue](https://github.com/Riordon666/zhenxun_naruto/issues) 或直接发起 [Pull Request](https://github.com/Riordon666/zhenxun_naruto/pulls)。我非常乐意听到你的声音！
+
+### 联系我
+QQ：2717831140（备注来意）
+
+### 开源协议
+本项目使用MIT作为开源协议
+
