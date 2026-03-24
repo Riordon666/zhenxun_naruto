@@ -18,6 +18,7 @@ from zhenxun.utils.message import MessageUtils
 from zhenxun.utils.platform import PlatformUtils
 
 from .data_source import NarutoService
+from .config import GETONEAPI_TOKEN, JUSTONEAPI_TOKEN
 
 __plugin_meta__ = PluginMetadata(
     name="火影忍者手游攻略",
@@ -43,6 +44,17 @@ __plugin_meta__ = PluginMetadata(
 
 # 创建服务实例
 naruto_service = NarutoService()
+
+
+def _missing_api_keys() -> list[str]:
+    """返回未配置的 API Key 名称列表"""
+    missing = []
+    if not GETONEAPI_TOKEN or "在这里填写" in GETONEAPI_TOKEN:
+        missing.append("GETONEAPI_TOKEN")
+    if not JUSTONEAPI_TOKEN or "在这里填写" in JUSTONEAPI_TOKEN:
+        missing.append("JUSTONEAPI_TOKEN")
+    return missing
+
 
 # 匹配“火影最新攻略”命令
 naruto_matcher = on_regex(r"^火影最新攻略(?:\s+(.+))?$", priority=5, block=True)
@@ -72,6 +84,15 @@ async def handle_simulator(session: EventSession):
 async def handle_naruto(bot: Bot, event: Event, session: EventSession, uninfo: Uninfo):
     """处理火影攻略请求"""
     try:
+        missing_keys = _missing_api_keys()
+        if missing_keys:
+            await MessageUtils.build_message(
+                "插件尚未配置 API Key，请先编辑 config.py 后再使用。\n"
+                f"缺少配置：{', '.join(missing_keys)}"
+            ).send()
+            logger.warning(f"火影攻略插件未配置 API Key: {', '.join(missing_keys)}", session=session)
+            return
+
         plain_text = event.get_plaintext().strip()
         prefix = "火影最新攻略"
         author_name = plain_text[len(prefix):].strip() if plain_text.startswith(prefix) else ""
@@ -97,15 +118,15 @@ async def handle_naruto(bot: Bot, event: Event, session: EventSession, uninfo: U
 
         # 1. 发送提示消息
         await MessageUtils.build_message("正在搜索最新攻略...").send()
-        
+
         # 2. 获取指定作者的最新作品
         work = await naruto_service.get_latest_work(author_name)
-        
+
         if not work:
             await MessageUtils.build_message("获取攻略失败，请稍后再试...").send()
             logger.warning("火影攻略获取失败", session=session)
             return
-        
+
         # 3. 生成公共文本
         create_time = work.get("create_time", 0)
         date_str = "未知日期"
@@ -114,11 +135,11 @@ async def handle_naruto(bot: Bot, event: Event, session: EventSession, uninfo: U
                 date_str = datetime.fromtimestamp(create_time).strftime("%Y-%m-%d %H:%M")
             except Exception:
                 pass
-        
+
         title = work.get("desc") or "无标题"
         intro_msg = f"📺 作者：{author_name}\n📝 标题：{title}\n📅 发布日期：{date_str}"
         footer_msg = "💡 攻略来源于抖音，若有侵权请联系删除"
-        
+
         # 4. 根据类型发送
         if work.get("type") == "video":
             # 视频作品：尝试使用聊天记录发送（Video(path=...)）
@@ -142,7 +163,7 @@ async def handle_naruto(bot: Bot, event: Event, session: EventSession, uninfo: U
                 else:
                     await MessageUtils.build_message("视频文件获取失败...").send()
                 await MessageUtils.build_message(footer_msg).send()
-        
+
         elif work.get("type") == "image":
             # 图文作品：继续使用聊天记录发送
             msg_list = [[intro_msg]]
@@ -154,7 +175,7 @@ async def handle_naruto(bot: Bot, event: Event, session: EventSession, uninfo: U
             else:
                 msg_list.append(["图片文件获取失败..."])
             msg_list.append([footer_msg])
-        
+
             if len(msg_list) > 3 and PlatformUtils.is_forward_merge_supported(uninfo):
                 await MessageUtils.alc_forward_msg(
                     msg_list, event.self_id, BotConfig.self_nickname
@@ -164,10 +185,10 @@ async def handle_naruto(bot: Bot, event: Event, session: EventSession, uninfo: U
                 for img_path in image_paths:
                     await MessageUtils.build_message(Path(img_path)).send()
                 await MessageUtils.build_message(footer_msg).send()
-        
+
         cache_status = "缓存" if work.get("is_cached") else "最新"
         logger.info(f"发送{cache_status}火影攻略：{author_name}", session=session)
-        
+
     except Exception as e:
         logger.error(f"火影攻略插件出错：{e}", session=session)
         await MessageUtils.build_message("获取攻略失败，请稍后再试...").send()

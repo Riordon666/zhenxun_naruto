@@ -2,7 +2,6 @@
 火影攻略插件本地配置
 
 此文件用于存放当前实例的真实 API 配置与作者配置。
-开源时不要提交此文件。
 """
 
 GETONEAPI_BASE = "https://api.getoneapi.com"
